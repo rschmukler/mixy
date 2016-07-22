@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -21,14 +23,25 @@ type AppResolution struct {
 }
 
 func main() {
+	cmd := exec.Command("mix", os.Args[1:]...)
+
 	if !isUmbrella() {
-		echoAndQuit()
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		errCode := 0
+		if err != nil {
+			errCode = 1
+		}
+
+		os.Exit(errCode)
 	}
 
 	dict := buildAppDictionary()
 
+	out, _ := cmd.CombinedOutput()
 	var (
-		scanner     = bufio.NewScanner(os.Stdin)
+		scanner     = bufio.NewScanner(bytes.NewReader(out))
 		currentPath = ""
 	)
 
