@@ -28,18 +28,12 @@ func main() {
 	if !isUmbrella() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		errCode := 0
-		if err != nil {
-			errCode = 1
-		}
-
-		os.Exit(errCode)
+		exit(cmd.Run())
 	}
 
 	dict := buildAppDictionary()
 
-	out, _ := cmd.CombinedOutput()
+	out, err := cmd.CombinedOutput()
 	var (
 		scanner     = bufio.NewScanner(bytes.NewReader(out))
 		currentPath = ""
@@ -52,6 +46,14 @@ func main() {
 		}
 		fmt.Fprintln(os.Stdout, string(prefixPaths(line, currentPath)))
 	}
+	exit(err)
+}
+
+func exit(err error) {
+	if err == nil {
+		os.Exit(0)
+	}
+	os.Exit(1)
 }
 
 func prefixPaths(line []byte, with string) []byte {
